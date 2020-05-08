@@ -8,6 +8,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 
 public class AddActivity extends AppCompatActivity {
@@ -24,21 +26,23 @@ public class AddActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add);
 
-        toolbar = findViewById(R.id.mainToolbar);
         Intent intent = getIntent();
-        String URL = intent.getStringExtra(Intent.EXTRA_TEXT);
+        if(intent != null){
+            String[] ytURL = intent.getStringArrayExtra("URL");
+            if(ytURL != null){
+                ListView listView = findViewById(R.id.list_item);
 
-        setupToolbarButton(R.drawable.ic_arrow_back, new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onBackPressed();
+                ArrayAdapter adapter = new ArrayAdapter<String>(
+                        this,     // Context for the activity.
+                        R.layout.activity_add,
+                        R.id.list_item,// Layout to use (create)
+                        ytURL);
+               // ArrayAdapter adapter = new ArrayAdapter<String>(this,R.layout.activity_add, ytURL);
+                listView.setAdapter(adapter);
             }
-        });
+        }
 
-        TextView tv = findViewById(R.id.addActivityTextView);
-        tv.setText(URL);
-        TextView tv2 = findViewById(R.id.textView2);
-        tv2.setText(intent.getAction());
+
     }
 
     private void setupToolbarButton(@DrawableRes int resId, View.OnClickListener actionOnClick) {
