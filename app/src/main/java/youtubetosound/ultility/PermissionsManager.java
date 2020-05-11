@@ -8,6 +8,7 @@ import android.util.Log;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+
 public class PermissionsManager {
     private static String TAG = "PermissionManager";
 
