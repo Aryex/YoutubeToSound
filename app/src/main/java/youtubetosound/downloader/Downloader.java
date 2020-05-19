@@ -45,6 +45,8 @@ public class Downloader {
         request.allowScanningByMediaScanner();
 
         File webmFile = new File(FileManager.getInstance().getAbsolutePath() + "/" + fileName);
+        Log.d(TAG, "download: path" + webmFile.getPath());
+        Log.d(TAG, "download: path" + webmFile.getAbsolutePath());
 
         DownloadManager manager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
         long downloadId = manager.enqueue(request);

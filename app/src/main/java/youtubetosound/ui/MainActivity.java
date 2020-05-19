@@ -7,6 +7,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -18,6 +20,7 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 
 import java.io.File;
+import java.net.URI;
 import java.util.ArrayList;
 
 import at.huber.youtubeExtractor.VideoMeta;
@@ -48,7 +51,6 @@ public class MainActivity extends AppCompatActivity {
         final ProgressBar progressBar = findViewById(R.id.progress_bar);
 
         ConverterScheduler.getInstance().setupConverter(this);
-
 
         PermissionsManager.checkExternalStoragePermission(this, new PermissionsManager.OnExternalStoragePermissionGranted() {
             @Override

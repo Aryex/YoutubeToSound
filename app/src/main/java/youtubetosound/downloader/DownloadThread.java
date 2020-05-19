@@ -56,7 +56,7 @@ class DownloadThread {
                     cursor.close();
                 }
                 //Download complete.
-                ConverterScheduler.getInstance().add(context, webmFile);
+                //ConverterScheduler.getInstance().add(context, webmFile);
             }
         }).start();
     }
