@@ -1,11 +1,14 @@
 package youtubetosound.item.manager;
 
+import android.content.Context;
 import android.media.MediaMetadataRetriever;
 import android.os.Environment;
 import android.util.Log;
 
 import java.io.File;
 import java.util.ArrayList;
+
+import youtubetosound.downloader.Downloader;
 
 
 public class AudioFileManager {
@@ -37,11 +40,20 @@ public class AudioFileManager {
                 e.printStackTrace();
             }
         }
-
         updateAvailableAudio();
     }
 
-    private void updateAvailableAudio() {
+    public void clear(){
+        for(AudioFile file : audioFiles){
+            if(file.isAvailable()){
+                Log.d(TAG, "clear: file " + file.getWebm().getName() + " is available.");
+                Log.d(TAG, "clear: deleting...");
+                file.getWebm().delete();
+            }
+        }
+    }
+
+    public void updateAvailableAudio() {
         MediaMetadataRetriever mediaMetadataRetriever = new MediaMetadataRetriever();
         for(File file:directory.listFiles()){
             mediaMetadataRetriever.setDataSource(file.getPath());
@@ -52,6 +64,17 @@ public class AudioFileManager {
 
     public void add(AudioFile file){
         audioFiles.add(file);
+    }
+
+    public void startDownloads(Context context) {
+        Downloader downloader = Downloader.getInstance();
+        for(AudioFile file: audioFiles){
+            if(!file.isAvailable()){
+                Log.d(TAG, "startDownloads: file " + file.getWebm().getName() + " is not available.");
+                Log.d(TAG, "startDownloads: starting download...");
+                downloader.download(context, file);
+            }
+        }
     }
 
     public int count() {

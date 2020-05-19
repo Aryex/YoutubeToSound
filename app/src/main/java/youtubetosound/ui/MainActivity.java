@@ -7,8 +7,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -20,7 +18,6 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 
 import java.io.File;
-import java.net.URI;
 import java.util.ArrayList;
 
 import at.huber.youtubeExtractor.VideoMeta;
@@ -28,7 +25,6 @@ import at.huber.youtubeExtractor.YouTubeExtractor;
 import at.huber.youtubeExtractor.YtFile;
 import youtubetosound.item.manager.AudioFile;
 import youtubetosound.item.manager.AudioFileManager;
-import youtubetosound.item.manager.WorkScheduler;
 import youtubetosound.model.FileManager;
 import youtubetosound.ultility.ConverterScheduler;
 import youtubetosound.ultility.PermissionsManager;
@@ -39,7 +35,6 @@ public class MainActivity extends AppCompatActivity {
     private FileManager fileManager;
     private String youtubeLink = "";
     private RecyclerViewAdapter adapter;
-    private WorkScheduler workScheduler;
     private ArrayList<AudioFile> filesForListing;
 
     @Override
@@ -50,12 +45,12 @@ public class MainActivity extends AppCompatActivity {
         final Context context = this;
         final ProgressBar progressBar = findViewById(R.id.progress_bar);
 
-        ConverterScheduler.getInstance().setupConverter(this);
+        //ConverterScheduler.getInstance().setupConverter(this);
 
         PermissionsManager.checkExternalStoragePermission(this, new PermissionsManager.OnExternalStoragePermissionGranted() {
             @Override
             public void permissionAlreadyGranted() {
-                fileManager = FileManager.getInstance();
+                setupRecyclerView();
             }
         });
 
@@ -80,11 +75,10 @@ public class MainActivity extends AppCompatActivity {
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                WorkScheduler.getInstance().start(context);
+                AudioFileManager.getInstance().startDownloads(context);
             }
         });
 
-        setupRecyclerView();
     }
 
     private void setupInputText() {
@@ -111,15 +105,9 @@ public class MainActivity extends AppCompatActivity {
     private void setupRecyclerView() {
         Log.d(TAG, "setupRecyclerView: setting up recyclerview.");
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
-        adapter = new RecyclerViewAdapter(this, getFilesForListing());
+        adapter = new RecyclerViewAdapter(this, AudioFileManager.getInstance().getFiles());
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-    }
-
-    private static ArrayList<AudioFile> getFilesForListing() {
-        ArrayList<AudioFile> newList = new ArrayList<>(AudioFileManager.getInstance().getFiles());
-        newList.addAll(WorkScheduler.getInstance().getFiles());
-        return newList;
     }
 
     private boolean isYoutubeLink(String data) {
@@ -143,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
             case PermissionsManager.EXTERNAL_READ_WRITE_REQUEST_CODE: {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    fileManager = FileManager.getInstance();
+                    setupRecyclerView();
                 }
             }
         }
@@ -177,12 +165,12 @@ public class MainActivity extends AppCompatActivity {
                         Log.d(TAG, "onExtractionComplete: " + ytFile.toString());
                         //AudioFileManager.getInstance().add(new AudioFile(ytFile.getUrl(), videoTitle, vMeta.getAuthor()));
 
-                        WorkScheduler.getInstance().add(new AudioFile(ytFile.getUrl(),
+                        AudioFileManager.getInstance().add(new AudioFile(ytFile.getUrl(),
                                 videoTitle,
                                 vMeta.getAuthor(),
                                 new File(FileManager.getInstance().getAbsolutePath() + "/" +filename)));
 
-                        adapter.updateList(getFilesForListing());
+                        adapter.updateList(AudioFileManager.getInstance().getFiles());
                         adapter.notifyDataSetChanged();
                     }
                 }
@@ -193,5 +181,11 @@ public class MainActivity extends AppCompatActivity {
     private static boolean isYtFileAudioAndHighQuality(SparseArray<YtFile> ytFiles, int itag) {
         return ytFiles.get(itag).getFormat().getHeight() == -1
                 && ytFiles.get(itag).getFormat().getAudioBitrate() >= 150;
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        AudioFileManager.getInstance().clear();
     }
 }

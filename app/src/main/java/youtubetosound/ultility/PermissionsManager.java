@@ -15,28 +15,22 @@ public class PermissionsManager {
     public static final int EXTERNAL_READ_WRITE_REQUEST_CODE = 1234;
 
     public static void checkExternalStoragePermission(Activity activity, OnExternalStoragePermissionGranted callback) {
-        if (ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            if (ContextCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-
-                ActivityCompat.requestPermissions(activity,
-                        new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,
-                                Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                        EXTERNAL_READ_WRITE_REQUEST_CODE);
+        if (hasReadWritePermission(activity)) {
+            if (callback != null) {
+                Log.d(TAG, "External R/W permission already granted. ");
+                callback.permissionAlreadyGranted();
             }
-        } else {
-            if (ContextCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-
-                ActivityCompat.requestPermissions(activity,
-                        new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,
-                                Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                        EXTERNAL_READ_WRITE_REQUEST_CODE);
-            }
+        }else{
+            ActivityCompat.requestPermissions(activity,
+                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    EXTERNAL_READ_WRITE_REQUEST_CODE);
         }
+    }
 
-        if (callback != null) {
-            Log.d(TAG, "External R/W permission already granted. ");
-            callback.permissionAlreadyGranted();
-        }
+    private static boolean hasReadWritePermission(Activity activity) {
+        return ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+                && ContextCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
     }
 
     public interface OnExternalStoragePermissionGranted {

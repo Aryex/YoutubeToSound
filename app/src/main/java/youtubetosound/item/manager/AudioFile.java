@@ -10,7 +10,6 @@ public class AudioFile {
     private String author;
 
     private File webm;
-    private File mp3;
     private ProgressBar progressBar;
 
     private AudioFile(){
@@ -25,7 +24,7 @@ public class AudioFile {
     }
 
     public boolean isAvailable(){
-        return (mp3 != null && mp3.exists());
+        return (webm != null && webm.exists());
     }
 
     public String getDownloadURL() {
