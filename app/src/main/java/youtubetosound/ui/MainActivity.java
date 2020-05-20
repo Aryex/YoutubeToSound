@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -32,10 +33,9 @@ import youtubetosound.ultility.PermissionsManager;
 public class MainActivity extends AppCompatActivity {
 
     private final static String TAG = "MainActivity";
-    private FileManager fileManager;
     private String youtubeLink = "";
-    private RecyclerViewAdapter adapter;
-    private ArrayList<AudioFile> filesForListing;
+    private static RecyclerViewAdapter adapter;
+    private static Handler mainHandler = new Handler();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                AudioFileManager.getInstance().startDownloads(context);
+                AudioFileManager.getInstance().startDownloads(context, mainHandler);
             }
         });
 
@@ -169,7 +169,6 @@ public class MainActivity extends AppCompatActivity {
                                 videoTitle,
                                 vMeta.getAuthor(),
                                 new File(FileManager.getInstance().getAbsolutePath() + "/" +filename)));
-
                         adapter.updateList(AudioFileManager.getInstance().getFiles());
                         adapter.notifyDataSetChanged();
                     }
@@ -187,5 +186,13 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         AudioFileManager.getInstance().clear();
+    }
+
+    public static RecyclerViewAdapter getAdapter() {
+        return adapter;
+    }
+
+    public static void setRunnable(Runnable runnable){
+        mainHandler.post(runnable);
     }
 }

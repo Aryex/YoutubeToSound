@@ -1,5 +1,6 @@
 package youtubetosound.item.manager;
 
+import android.view.View;
 import android.widget.ProgressBar;
 
 import java.io.File;
@@ -11,6 +12,7 @@ public class AudioFile {
 
     private File webm;
     private ProgressBar progressBar;
+    private View view;
 
     private AudioFile(){
 
@@ -52,6 +54,14 @@ public class AudioFile {
     public AudioFile setAuthor(String author) {
         this.author = author;
         return this;
+    }
+
+    public View getView() {
+        return view;
+    }
+
+    public void setView(View view) {
+        this.view = view;
     }
 
     public String getFileNameWebm() {

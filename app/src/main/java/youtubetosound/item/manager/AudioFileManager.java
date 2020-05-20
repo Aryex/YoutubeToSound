@@ -3,6 +3,7 @@ package youtubetosound.item.manager;
 import android.content.Context;
 import android.media.MediaMetadataRetriever;
 import android.os.Environment;
+import android.os.Handler;
 import android.util.Log;
 
 import java.io.File;
@@ -66,13 +67,13 @@ public class AudioFileManager {
         audioFiles.add(file);
     }
 
-    public void startDownloads(Context context) {
+    public void startDownloads(Context context, Handler handler) {
         Downloader downloader = Downloader.getInstance();
         for(AudioFile file: audioFiles){
             if(!file.isAvailable()){
                 Log.d(TAG, "startDownloads: file " + file.getWebm().getName() + " is not available.");
                 Log.d(TAG, "startDownloads: starting download...");
-                downloader.download(context, file);
+                downloader.download(context, handler, file);
             }
         }
     }

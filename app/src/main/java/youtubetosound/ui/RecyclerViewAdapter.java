@@ -45,8 +45,9 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     private void setupViewHolder(ViewHolder holder, AudioFile audioFile) {
         holder.setAudioName(audioFile.getName());
         holder.setAuthor(audioFile.getAuthor());
-        holder.setAvailability(audioFile.isAvailable());
+        holder.setStatus(audioFile.isAvailable());
         audioFile.setProgressBar(holder.getProgressBar());
+        audioFile.setView(holder.getView());
     }
 
     public void updateList(ArrayList<AudioFile> files) {
@@ -57,7 +58,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         LinearLayout parentLayout;
         TextView audioName;
         TextView author;
-        TextView availability;
+        TextView status;
         ProgressBar progressBar;
 
         ViewHolder(View itemView) {
@@ -66,7 +67,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             parentLayout = itemView.findViewById(R.id.parentLayout);
             audioName = itemView.findViewById(R.id.audioNameTextView);
             author = itemView.findViewById(R.id.audioAuthorTextView);
-            availability = itemView.findViewById(R.id.statusTextView);
+            status = itemView.findViewById(R.id.statusTextView);
             progressBar = itemView.findViewById(R.id.progress_bar);
         }
 
@@ -78,8 +79,8 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             this.author.setText(author);
         }
 
-        public void setAvailability(boolean availability) {
-            this.availability.setText(availabilityToString(availability));
+        public void setStatus(boolean status) {
+            this.status.setText(availabilityToString(status));
         }
 
         public ProgressBar getProgressBar() {
@@ -90,9 +91,11 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             if (available) {
                 return "Available";
             }
-            return "Not Available";
+            return "Ready for download";
         }
 
-
+        public View getView() {
+            return itemView;
+        }
     }
 }
