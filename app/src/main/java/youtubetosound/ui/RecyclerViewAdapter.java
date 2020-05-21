@@ -13,21 +13,21 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 
-import youtubetosound.item.manager.AudioFile;
+import youtubetosound.model.Card;
 
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder> {
     private final static String TAG = "RecyclerViewAdapter";
     private Context context;
-    private ArrayList<AudioFile> files;
+    private ArrayList<Card> files;
 
-    public RecyclerViewAdapter(Context context, ArrayList<AudioFile> files) {
+    public RecyclerViewAdapter(Context context, ArrayList<Card> files) {
         this.context = context;
         this.files = files;
     }
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.recycler_list_item, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.layout_card, parent, false);
         return new ViewHolder(view);
     }
 
@@ -42,20 +42,32 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         return files.size();
     }
 
-    private void setupViewHolder(ViewHolder holder, AudioFile audioFile) {
-        holder.setAudioName(audioFile.getName());
-        holder.setAuthor(audioFile.getAuthor());
-        holder.setStatus(audioFile.isAvailable());
-        audioFile.setProgressBar(holder.getProgressBar());
-        audioFile.setView(holder.getView());
+    private void setupViewHolder(ViewHolder holder, Card card) {
+
+        switch (card.getStatus()){
+            case READY_FOR_DOWNLOAD:
+                holder.showInfo();
+                holder.setAudioName(card.getName());
+                holder.setAuthor(card.getAuthor());
+                holder.setStatus(card.getStatusToString());
+                card.setProgressBar(holder.getProgressBar());
+                card.setView(holder.getView());
+                return;
+            default:
+                return;
+        }
+
     }
 
-    public void updateList(ArrayList<AudioFile> files) {
+    public void updateList(ArrayList<Card> files) {
         this.files = files;
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {
         LinearLayout parentLayout;
+        LinearLayout infoLayout;
+        LinearLayout loadingLayout;
+
         TextView audioName;
         TextView author;
         TextView status;
@@ -65,6 +77,9 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             super(itemView);
 
             parentLayout = itemView.findViewById(R.id.parentLayout);
+            infoLayout = itemView.findViewById(R.id.linearLayoutCardInfo);
+            loadingLayout = itemView.findViewById(R.id.linearLayoutCardLoading);
+
             audioName = itemView.findViewById(R.id.audioNameTextView);
             author = itemView.findViewById(R.id.audioAuthorTextView);
             status = itemView.findViewById(R.id.statusTextView);
@@ -79,23 +94,21 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             this.author.setText(author);
         }
 
-        public void setStatus(boolean status) {
-            this.status.setText(availabilityToString(status));
+        public void setStatus(String status) {
+            this.status.setText(status);
         }
 
         public ProgressBar getProgressBar() {
             return progressBar;
         }
 
-        private String availabilityToString(boolean available) {
-            if (available) {
-                return "Available";
-            }
-            return "Ready for download";
-        }
-
         public View getView() {
             return itemView;
+        }
+
+        public void showInfo() {
+            loadingLayout.setVisibility(View.GONE);
+            infoLayout.setVisibility(View.VISIBLE);
         }
     }
 }

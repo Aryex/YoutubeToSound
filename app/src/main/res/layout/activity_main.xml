@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/linearLayoutMainActivity"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/white"
@@ -40,44 +41,46 @@
             android:text="Descriptions" />
     </LinearLayout>
 
+<!--    <LinearLayout-->
+<!--        android:id="@+id/linearLayoutLoading"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_gravity="center"-->
+<!--        android:visibility="gone"-->
+<!--        android:orientation="vertical">-->
+
+<!--        <ProgressBar-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_gravity="center" />-->
+
+<!--        <TextView-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_gravity="center"-->
+<!--            android:text="Retrieving info" />-->
+<!--    </LinearLayout>-->
+
     <LinearLayout
-        android:id="@+id/linearLayoutLoading"
+        android:id="@+id/linearLayoutMsg"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:orientation="vertical">
-
-        <ProgressBar
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="Retrieving info" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/linearLayoutStatus"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:visibility="gone"
         android:orientation="vertical">
 
         <ImageView
+            android:id="@+id/action_image"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_check_black_64dp"
+            android:src="@drawable/ic_launch_black_64dp"
             android:layout_gravity="center" />
 
         <TextView
+            android:id="@+id/msgTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="Added" />
+            android:text="Start by sharing a link from YouTube" />
     </LinearLayout>
 
     <LinearLayout

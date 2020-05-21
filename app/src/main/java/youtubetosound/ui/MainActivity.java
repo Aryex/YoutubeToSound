@@ -1,6 +1,8 @@
 package youtubetosound.ui;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -16,26 +18,27 @@ import android.util.SparseArray;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ProgressBar;
+import android.widget.ImageView;
+import android.widget.Toast;
 
-import java.io.File;
-import java.util.ArrayList;
+import com.google.android.material.snackbar.Snackbar;
 
 import at.huber.youtubeExtractor.VideoMeta;
 import at.huber.youtubeExtractor.YouTubeExtractor;
 import at.huber.youtubeExtractor.YtFile;
-import youtubetosound.item.manager.AudioFile;
-import youtubetosound.item.manager.AudioFileManager;
-import youtubetosound.model.FileManager;
-import youtubetosound.ultility.ConverterScheduler;
+import youtubetosound.model.Card;
+import youtubetosound.model.Manager;
 import youtubetosound.ultility.PermissionsManager;
 
 public class MainActivity extends AppCompatActivity {
 
     private final static String TAG = "MainActivity";
     private String youtubeLink = "";
-    private static RecyclerViewAdapter adapter;
+    private static RecyclerViewAdapter recyclerViewAdapter;
     private static Handler mainHandler = new Handler();
+    private Manager manager;
+
+    //TODO: convert cards to be a singular entity each controlling its view.
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,7 +46,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         final Context context = this;
-        final ProgressBar progressBar = findViewById(R.id.progress_bar);
 
         //ConverterScheduler.getInstance().setupConverter(this);
 
@@ -61,13 +63,22 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        manager = Manager.getInstance();
+
         setupInputText();
 
         Button btn = findViewById(R.id.addButton);
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-               extractUrl(context, youtubeLink, adapter);
+
+                if (isYoutubeLink(youtubeLink)) {
+                    Card newCard = makeNewCard();
+                    newCard.setStatus(Card.Status.EXTRACTING);
+                    extractUrl(context, youtubeLink, newCard, recyclerViewAdapter);
+                } else {
+                    Toast.makeText(context, "Invalid link!", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -75,10 +86,25 @@ public class MainActivity extends AppCompatActivity {
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                AudioFileManager.getInstance().startDownloads(context, mainHandler);
+                Manager.getInstance().startDownloads(context, mainHandler);
             }
         });
 
+        ImageView img = findViewById(R.id.action_image);
+        img.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = getPackageManager().getLaunchIntentForPackage("com.google.android.youtube");
+                context.startActivity(intent);
+            }
+        });
+
+    }
+
+    private Card makeNewCard() {
+        Card newCard = manager.add(new Card());
+        recyclerViewAdapter.notifyItemInserted(manager.getSize() - 1);
+        return newCard;
     }
 
     private void setupInputText() {
@@ -105,9 +131,11 @@ public class MainActivity extends AppCompatActivity {
     private void setupRecyclerView() {
         Log.d(TAG, "setupRecyclerView: setting up recyclerview.");
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
-        adapter = new RecyclerViewAdapter(this, AudioFileManager.getInstance().getFiles());
-        recyclerView.setAdapter(adapter);
+        recyclerViewAdapter = new RecyclerViewAdapter(this, Manager.getInstance().getCards());
+        recyclerView.setAdapter(recyclerViewAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        new ItemTouchHelper(new ItemTouchHelperCallBack(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT))
+                .attachToRecyclerView(recyclerView);
     }
 
     private boolean isYoutubeLink(String data) {
@@ -137,10 +165,17 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private static void extractUrl(final Context context, String youtubeLink, final RecyclerViewAdapter adapter) {
+    private static void extractUrl(final Context context, final String youtubeLink, final Card card, final RecyclerViewAdapter adapter) {
         new YouTubeExtractor(context) {
             @Override
             public void onExtractionComplete(SparseArray<YtFile> ytFiles, VideoMeta vMeta) {
+
+                if (ytFiles == null) {
+                    Log.d(TAG, "onExtractionComplete: NULL");
+                    extractUrl(context, youtubeLink, card, adapter);
+                    return;
+                }
+
                 for (int i = 0; i < ytFiles.size(); i++) {
                     int itag;
                     itag = ytFiles.keyAt(i);
@@ -163,14 +198,20 @@ public class MainActivity extends AppCompatActivity {
                         Log.d(TAG, "onExtractionComplete: LENGTH: " + vMeta.getVideoLength());
                         Log.d(TAG, "onExtractionComplete: FILE NAME: " + filename);
                         Log.d(TAG, "onExtractionComplete: " + ytFile.toString());
-                        //AudioFileManager.getInstance().add(new AudioFile(ytFile.getUrl(), videoTitle, vMeta.getAuthor()));
 
-                        AudioFileManager.getInstance().add(new AudioFile(ytFile.getUrl(),
-                                videoTitle,
-                                vMeta.getAuthor(),
-                                new File(FileManager.getInstance().getAbsolutePath() + "/" +filename)));
-                        adapter.updateList(AudioFileManager.getInstance().getFiles());
+                        card.setDownloadURL(ytFile.getUrl())
+                                .setName(videoTitle)
+                                .setAuthor(vMeta.getAuthor())
+                                .setStatus(Card.Status.READY_FOR_DOWNLOAD);
+
+//                        Manager.getInstance().add(new Card(ytFile.getUrl(),
+//                                videoTitle,
+//                                vMeta.getAuthor(),
+//                                new File(FileManager.getInstance().getAbsolutePath() + "/" +filename)));
+                        adapter.updateList(Manager.getInstance().getCards());
                         adapter.notifyDataSetChanged();
+                        //MainActivity.setRunnable(adapter);
+                        //((MainActivity)context).runOnUiThread(new);
                     }
                 }
             }
@@ -185,14 +226,53 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        AudioFileManager.getInstance().clear();
+        Manager.getInstance().clear();
     }
 
-    public static RecyclerViewAdapter getAdapter() {
-        return adapter;
+    public static RecyclerViewAdapter getRecyclerViewAdapter() {
+        return recyclerViewAdapter;
     }
 
-    public static void setRunnable(Runnable runnable){
+    public static void setRunnable(Runnable runnable) {
         mainHandler.post(runnable);
+    }
+
+    private class ItemTouchHelperCallBack extends ItemTouchHelper.SimpleCallback {
+
+        private int positionRemoved;
+        private Card cardRemoved;
+
+        public ItemTouchHelperCallBack(int dragDirs, int swipeDirs) {
+            super(dragDirs, swipeDirs);
+        }
+
+        @Override
+        public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+            return false;
+        }
+
+        @Override
+        public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+            positionRemoved = viewHolder.getAdapterPosition();
+            cardRemoved = manager.get(positionRemoved);
+
+            manager.remove(positionRemoved);
+            recyclerViewAdapter.notifyItemRemoved(positionRemoved);
+
+            showUndoSnackbar();
+        }
+
+        private void showUndoSnackbar() {
+            View view = findViewById(R.id.linearLayoutMainActivity);
+            Snackbar snackbar = Snackbar.make(view, "Undo",
+                    Snackbar.LENGTH_LONG);
+            snackbar.setAction("Undo", v -> undoDelete());
+            snackbar.show();
+        }
+
+        private void undoDelete() {
+            manager.add(cardRemoved, positionRemoved);
+            recyclerViewAdapter.notifyItemInserted(positionRemoved);
+        }
     }
 }

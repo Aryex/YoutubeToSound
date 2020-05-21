@@ -1,4 +1,4 @@
-package youtubetosound.item.manager;
+package youtubetosound.model;
 
 import android.content.Context;
 import android.media.MediaMetadataRetriever;
@@ -12,24 +12,24 @@ import java.util.ArrayList;
 import youtubetosound.downloader.Downloader;
 
 
-public class AudioFileManager {
+public class Manager {
     private static final String TAG = "AudioFileManager";
     private static final String REL_PATH = "Podcasterize";
 
     private static String absPath;
     private static File directory;
 
-    private ArrayList<AudioFile> audioFiles = new ArrayList<>();
-    private static AudioFileManager instance;
+    private ArrayList<Card> cards = new ArrayList<>();
+    private static Manager instance;
 
-    public static AudioFileManager getInstance() {
+    public static Manager getInstance() {
         if (instance == null) {
-            instance = new AudioFileManager();
+            instance = new Manager();
         }
         return instance;
     }
 
-    private AudioFileManager(){
+    private Manager(){
         absPath = Environment.getExternalStorageDirectory().toString() + "/" + REL_PATH;
         directory = new File(absPath);
 
@@ -45,8 +45,8 @@ public class AudioFileManager {
     }
 
     public void clear(){
-        for(AudioFile file : audioFiles){
-            if(file.isAvailable()){
+        for(Card file : cards){
+            if(file.webmAvailable()){
                 Log.d(TAG, "clear: file " + file.getWebm().getName() + " is available.");
                 Log.d(TAG, "clear: deleting...");
                 file.getWebm().delete();
@@ -63,34 +63,47 @@ public class AudioFileManager {
         }
     }
 
-    public void add(AudioFile file){
-        audioFiles.add(file);
+    public Card add(Card card){
+        cards.add(card);
+        return card;
+    }
+
+    public Card add(Card card, int position){
+        cards.add(position, card);
+        return card;
     }
 
     public void startDownloads(Context context, Handler handler) {
-        Downloader downloader = Downloader.getInstance();
-        for(AudioFile file: audioFiles){
-            if(!file.isAvailable()){
-                Log.d(TAG, "startDownloads: file " + file.getWebm().getName() + " is not available.");
+        for(Card card: cards){
+            if(!card.webmAvailable()){
+                Log.d(TAG, "startDownloads: card " + card.getWebm().getName() + " is not available.");
                 Log.d(TAG, "startDownloads: starting download...");
-                downloader.download(context, handler, file);
+                card.download(context, handler);
             }
         }
     }
 
     public int count() {
-        return audioFiles.size();
+        return cards.size();
     }
 
-    public AudioFile getFile(int position) {
-        return audioFiles.get(position);
+    public Card get(int position) {
+        return cards.get(position);
     }
 
-    public ArrayList<AudioFile> getFiles() {
-        return audioFiles;
+    public ArrayList<Card> getCards() {
+        return cards;
     }
 
     public String getRelativePath(){
         return directory.getName();
+    }
+
+    public int getSize() {
+        return cards.size();
+    }
+
+    public void remove(int position) {
+        cards.remove(position);
     }
 }

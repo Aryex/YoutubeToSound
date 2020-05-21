@@ -20,6 +20,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    compileOptions {
+        targetCompatibility = 1.8
+        sourceCompatibility = 1.8
+    }
 
     repositories {
         maven { url "https://jitpack.io" }
@@ -28,7 +32,8 @@ android {
 }
 
 dependencies {
-    implementation 'com.android.support:cardview-v7:28.0.0'
+    implementation "androidx.cardview:cardview:1.0.0"
+    implementation "com.google.android.material:material:1.2.0-alpha06"
     compile 'com.github.adrielcafe:ffmpeg-android-java:2a627f6ecd@aar'
     implementation 'com.github.HaarigerHarald:android-youtubeExtractor:master-SNAPSHOT'
     implementation fileTree(dir: 'libs', include: ['*.jar'])
